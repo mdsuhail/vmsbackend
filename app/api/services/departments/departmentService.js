@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 //const departmentModel = require('../../models/departmentsModel');
 //const departmentSchema = require('../../models/departmentsModel');
 //var departmentModel = mongoose.model('Department', departmentSchema)
-const connTen = require('../../../../config/connectionTenant');
+var connTen = require('../../../../config/connectionTenant');
 var func = require('../../helpers/functions');
 module.exports = {
     getAll: function (req, res, next) {
@@ -19,7 +19,7 @@ module.exports = {
         var prefix = func.getCollectionPrefix(req, res);
         connTen.tenantDepartmentModel(prefix);
         var query = func.getQueryConditionWithDefault(currentUser);
-        connTen.departmentModel.find(query).sort({"_id": -1}).exec(function (err, departments) {
+        connTen.departmentModel.find(query).exec(function (err, departments) {
             if (err) {
                 next(err);
             } else if (!departments.length) {

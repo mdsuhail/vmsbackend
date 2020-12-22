@@ -54,12 +54,6 @@ const CompanySchema = new Schema({
         type: Boolean,
         default: true
     },
-    slug: {
-        type: String,
-        unique: true,
-        trim: true,
-        default: ''
-    },
     dbName: {
         type: String,
         unique: true,

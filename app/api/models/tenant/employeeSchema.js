@@ -27,6 +27,10 @@ const EmployeeSchema = new Schema({
         type: Boolean,
         default: true
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',

@@ -21,6 +21,7 @@ var employeeController = require('./../../app/api/controllers/employeesControlle
 var visitorController = require('./../../app/api/controllers/visitorsController');
 var visitorCategoryController = require('./../../app/api/controllers/visitorcategoriesController');
 var otpController = require('./../../app/api/controllers/otpController');
+var faceRecognitionController = require('./../../app/api/controllers/faceRecognitionController');
 
 router.use('/authentication', authenticationController);
 router.use('/resources', resourceController);
@@ -36,5 +37,6 @@ router.use('/employees', employeeController);
 router.use('/visitors', visitorController);
 router.use('/visitorcategories', visitorCategoryController);
 router.use('/otp', otpController);
+router.use('/face', faceRecognitionController);
 
 module.exports = router;

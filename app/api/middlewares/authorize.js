@@ -3,42 +3,69 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-const roleModel = require('../models/rolesModel');
+// const roleModel = require('../models/rolesModel');
 var func = require('../helpers/functions');
+const config = require('../../../config/database');
+const connMas = require('../../../config/connection');
+connMas.connectionMasterRole();
+connMas.connectionMasterResource();
+connMas.connectionMasterPermission();
+
 function authorize(resource, action) {
     return [
         // authorize based on user role
         (req, res, next) => {
-            var currentUser = func.getCurrentUser(req.headers)            
+            var currentUser = func.getCurrentUser(req.headers)
+            var isAuthorize = false;
             if (resource.length && action.length) {
                 var re = resource;
                 var ac = action;
-                var isAuthorize = false;
-                roleModel.findById(currentUser.role._id).populate({path: 'resources', model: 'Resource'}).exec(function (err, role) {
+                connMas.RoleMaster.findById(currentUser.role._id).populate([
+                    {
+                        path: 'resource_permissions.resource',
+                        model: connMas.ResourceMaster,
+                        select: ["-company", "-createdBy", "-updatedAt", "-__v"]
+                    },
+                    {
+                        path: 'resource_permissions.permissions',
+                        model: connMas.PermissionMaster,
+                        select: ["-resource", "-company", "-createdBy", "-updatedAt", "-__v"]
+                    }
+                ]).exec(function (err, role) {
                     if (err) {
                         next(err);
                     } else {
-                        var searchedResource = role.resources.find(resource => resource.name == re) // First search the resource
+                        var resource_permissions = role.resource_permissions
+                        var searchedResource = resource_permissions.find(resource => resource.resource.name == re) // First search the resource
+                        // console.log(searchedResource)
                         if (searchedResource) {
-                            var perm = role.resource_permissions.find(resPerm => resPerm._id == searchedResource._id)   // Second search the permissions array in the resource for the role ['create', 'read', 'update', 'delete']
+                            var perm = searchedResource.permissions.find(resPerm => resPerm.name == ac)   // Second search the permissions array in the resource for the role ['create', 'read', 'update', 'delete']
+                            // console.log(perm)
                             if (perm) {
-                                var act = perm.permissions.find(action => action == ac) // Final check the given action in the searched permission array
-                                if (act) {
-                                    isAuthorize = true;
-                                }
+                                // console.log(perm)
+                                // var act = perm.find(action => action.name == ac) // Final check the given action in the searched permission array
+                                // if (perm.name == ac) {
+                                isAuthorize = true;
+                                // }
                             }
                         }
                         if (!isAuthorize) {
                             // user's role is not authorized
-                            res.json({success: false, statusCode: res.statusCode, message: 'Unauthorized access', data: null});
+                            res.json({
+                                success: false,
+                                statusCode: 401,
+                                message: 'Unauthorized access',
+                                data: null
+                            });
+                            return;
+                        } else {
+                            next()
                         }
                     }
                 });
             }
-            // authentication and authorization successful
-            next();
         }
     ];
 }
 
-module.exports = authorize;
+exports.authorize = authorize;

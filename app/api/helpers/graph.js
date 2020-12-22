@@ -21,6 +21,10 @@ module.exports.getSigninQueryForHour = function (user) {
 //    if (user.role.name !== 'superadmin') {
 //        match = {"signOut": "", company: ObjectId(user.company._id), createdAt: {$gte: start, $lt: end}};
 //    }
+    if (user) {
+        if (user.role.name === 'employee')
+            var match = {"whomToMeet": {$eq: user._id}, "signOut": "", createdAt: {$gte: start, $lt: end}};
+    }
     signInQuery.match = match;
     signInQuery.project = {"h": {"$hour": "$createdAt"}};
     signInQuery.group = "$h";
@@ -33,6 +37,10 @@ module.exports.getSignoutQueryForHour = function (user) {
     var end = new Date();
     end.setHours(23, 59, 59, 999);
     var match = {"signOut": {$ne: ""}, createdAt: {$gte: start, $lt: end}};
+    if (user) {
+        if (user.role.name === 'employee')
+            var match = {"whomToMeet": {$eq: user._id}, "signOut": {$ne: ""}, createdAt: {$gte: start, $lt: end}};
+    }
 //    if (user.role.name !== 'superadmin') {
 //        match = {"signOut": {$ne: ""}, company: ObjectId(user.company._id), createdAt: {$gte: start, $lt: end}};
 //    }
@@ -46,6 +54,10 @@ module.exports.getSigninQueryForDate = function (user, start, end) {
     start = new Date(start);
     end = new Date(end);
     var match = {"signOut": "", "createdAt": {$gte: start, $lt: end}};
+    if (user) {
+        if (user.role.name === 'employee')
+            var match = {"whomToMeet": {$eq: user._id}, "signOut": "", createdAt: {$gte: start, $lt: end}};
+    }
 //    if (user.role.name !== 'superadmin') {
 //        match = {"signOut": "", "company": ObjectId(user.company._id), "createdAt": {$gte: start, $lt: end}};
 //    }
@@ -65,6 +77,10 @@ module.exports.getSignoutQueryForDate = function (user, start, end) {
     start = new Date(start);
     end = new Date(end);
     var match = {"signOut": {$ne: ""}, "createdAt": {$gte: start, $lt: end}};
+    if (user) {
+        if (user.role.name === 'employee')
+            var match = {"whomToMeet": {$eq: user._id}, "signOut": {$ne: ""}, createdAt: {$gte: start, $lt: end}};
+    }
 //    if (user.role.name !== 'superadmin') {
 //        match = {"signOut": {$ne: ""}, "company": ObjectId(user.company._id), "createdAt": {$gte: start, $lt: end}};
 //    }

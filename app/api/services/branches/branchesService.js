@@ -11,7 +11,12 @@ module.exports = {
     create: function (req, res, next) {
         var currentUser = func.getCurrentUser(req.headers);
         if (!req.body.name || !req.body.email) {
-            res.json({success: false, statusCode: res.statusCode, message: "Branch name and email required!!!", data: {}});
+            res.json({
+                success: false,
+                statusCode: res.statusCode,
+                message: "Branch name and email required!!!",
+                data: {}
+            });
             return;
         }
         let name = req.body && req.body !== undefined ? req.body.name : '';
@@ -29,7 +34,12 @@ module.exports = {
             prefix: req.body.prefix && req.body.prefix !== undefined ? req.body.prefix : prefix,
             active: req.body.active && req.body.active !== undefined ? req.body.active : false,
             accountExpiryDate: req.body.accountExpiryDate && req.body.accountExpiryDate !== undefined ? req.body.accountExpiryDate : new Date(),
+            accountPlan: req.body.accountPlan && req.body.accountPlan !== undefined ? req.body.accountPlan : '',
+            customPlanValue: req.body.customPlanValue && req.body.customPlanValue !== undefined ? req.body.customPlanValue : '',
             isVisitorApproval: req.body.isVisitorApproval && req.body.isVisitorApproval !== undefined ? req.body.isVisitorApproval : false,
+            isTouchless: req.body.isTouchless && req.body.isTouchless !== undefined ? req.body.isTouchless : false,
+            isGovernmentIdUpload: req.body.isGovernmentIdUpload && req.body.isGovernmentIdUpload !== undefined ? req.body.isGovernmentIdUpload : false,
+            isItemImageUpload: req.body.isItemImageUpload && req.body.isItemImageUpload !== undefined ? req.body.isItemImageUpload : false,
             createdBy: req.body.createdBy && req.body.createdBy !== null ? req.body.createdBy : currentUser._id,
             company: req.body.company && req.body.company !== null ? req.body.company : currentUser.company._id,
         };
@@ -45,7 +55,12 @@ module.exports = {
             if (err) {
                 next(err);
             } else {
-                res.json({success: true, statusCode: res.statusCode, message: "Record found!!!", data: {branch: branch}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Record found!!!",
+                    data: {branch: branch}
+                });
             }
         });
     },
@@ -54,9 +69,19 @@ module.exports = {
             if (err) {
                 next(err);
             } else if (!branches.length) {
-                res.json({success: true, statusCode: res.statusCode, message: "No record found!!!", data: {branches: []}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "No record found!!!",
+                    data: {branches: []}
+                });
             } else {
-                res.json({success: true, statusCode: res.statusCode, message: "Record found!!!", data: {branches: branches}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Record found!!!",
+                    data: {branches: branches}
+                });
             }
         });
     },
@@ -65,16 +90,52 @@ module.exports = {
             if (err) {
                 next(err);
             } else if (!branches.length) {
-                res.json({success: true, statusCode: res.statusCode, message: "No record found!!!", data: {branches: []}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "No record found!!!",
+                    data: {branches: []}
+                });
             } else {
-                res.json({success: true, statusCode: res.statusCode, message: "Record found!!!", data: {branches: branches}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Record found!!!",
+                    data: {branches: branches}
+                });
+            }
+        });
+    },
+    getByCompanyIdForEmployeeValidation: function (req, res, next) {
+        connMas.BranchMaster.find({"company": req.params.companyId}).select(['_id', 'name', 'address', 'city', 'state', 'prefix']).exec(function (err, branches) {
+            if (err) {
+                next(err);
+            } else if (!branches.length) {
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "No record found!!!",
+                    data: {branches: []}
+                });
+            } else {
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Record found!!!",
+                    data: {branches: branches}
+                });
             }
         });
     },
     updateById: function (req, res, next) {
         var currentUser = func.getCurrentUser(req.headers);
         if (!req.body.name || !req.body.email) {
-            res.json({success: false, statusCode: res.statusCode, message: "Branch name and email required!!!", data: {}});
+            res.json({
+                success: false,
+                statusCode: res.statusCode,
+                message: "Branch name and email required!!!",
+                data: {}
+            });
             return;
         }
         let name = req.body && req.body !== undefined ? req.body.name : '';
@@ -91,8 +152,13 @@ module.exports = {
             website: req.body.website && req.body.website !== undefined ? req.body.website : '',
             prefix: req.body.prefix && req.body.prefix !== undefined ? req.body.prefix : prefix,
             accountExpiryDate: req.body.accountExpiryDate && req.body.accountExpiryDate !== undefined ? req.body.accountExpiryDate : new Date(),
+            accountPlan: req.body.accountPlan && req.body.accountPlan !== undefined ? req.body.accountPlan : '',
+            customPlanValue: req.body.customPlanValue && req.body.customPlanValue !== undefined ? req.body.customPlanValue : '',
             active: req.body.active && req.body.active !== undefined ? req.body.active : false,
             isVisitorApproval: req.body.isVisitorApproval && req.body.isVisitorApproval !== undefined ? req.body.isVisitorApproval : false,
+            isTouchless: req.body.isTouchless && req.body.isTouchless !== undefined ? req.body.isTouchless : false,
+            isGovernmentIdUpload: req.body.isGovernmentIdUpload && req.body.isGovernmentIdUpload !== undefined ? req.body.isGovernmentIdUpload : false,
+            isItemImageUpload: req.body.isItemImageUpload && req.body.isItemImageUpload !== undefined ? req.body.isItemImageUpload : false,
             createdBy: req.body.createdBy && req.body.createdBy !== null ? req.body.createdBy : currentUser._id,
             company: req.body.company && req.body.company !== null ? req.body.company : currentUser.company._id,
         };

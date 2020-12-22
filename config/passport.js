@@ -5,7 +5,7 @@
  */
 
 var JwtStrategy = require('passport-jwt').Strategy,
-        ExtractJwt = require('passport-jwt').ExtractJwt;
+    ExtractJwt = require('passport-jwt').ExtractJwt;
 
 // load up the user model
 const connMas = require('./connection');
@@ -37,18 +37,18 @@ module.exports = function (passport) {
 
     passport.use(new JwtStrategy(opts, function (jwt_payload, done) {
         connMas.UserMaster.findById(jwt_payload._id).select(['-password', '-updatedAt', '-createdBy', '-__v'])
-                .populate('company', ['-updatedAt', '-dbUsername', '-dbPassword', '-dbPort', '-dbHost', '-createdBy', '-__v'], connMas.CompanyMaster)
-                .populate('branch', ['-company', '-updatedAt', '-createdBy', '-__v'], connMas.BranchMaster)
-                .populate('role', ['-resource_permissions', '-company', '-createdBy', '-updatedAt', '-__v'], connMas.RoleMaster)
-                .exec(function (err, user) {
-                    if (err) {
-                        return done(err, false);
-                    }
-                    if (user) {
-                        return done(null, user);
-                    } else {
-                        return done(null, false);
-                    }
-                });
+            .populate('company', ['-updatedAt', '-dbUsername', '-dbPassword', '-dbPort', '-dbHost', '-createdBy', '-__v'], connMas.CompanyMaster)
+            .populate('branch', ['-company', '-updatedAt', '-createdBy', '-__v'], connMas.BranchMaster)
+            .populate('role', ['-resource_permissions', '-company', '-createdBy', '-updatedAt', '-__v'], connMas.RoleMaster)
+            .exec(function (err, user) {
+                if (err) {
+                    return done(err, false);
+                }
+                if (user) {
+                    return done(null, user);
+                } else {
+                    return done(null, false);
+                }
+            });
     }));
 };

@@ -37,6 +37,7 @@ module.exports = {
         var data = {
             name: req.body.name,
             email: req.body.email,
+            emailDomain: req.body.emailDomain,
             contact: req.body.contact ? req.body.contact : '',
             address: req.body.address ? req.body.address : '',
             city: req.body.city ? req.body.city : '',
@@ -101,6 +102,7 @@ module.exports = {
         var data = {
             name: req.body.name,
             email: req.body.email,
+            emailDomain: req.body.emailDomain,
             contact: req.body.contact,
             address: req.body.address,
             city: req.body.city,
@@ -116,7 +118,7 @@ module.exports = {
             if (err)
                 next(err);
             else {
-                var comp = {"_id": company._id, "name": company.name, "email": company.email, "logo": company.logo, "address": company.address, "contact": company.contact, "city": company.city, "state": company.state, "zip": company.zip, "website": company.website, "active": company.active, "createdAt": company.createdAt}
+                var comp = {"_id": company._id, "name": company.name, "email": company.email, "emailDomain": company.emailDomain, "logo": company.logo, "address": company.address, "contact": company.contact, "city": company.city, "state": company.state, "zip": company.zip, "website": company.website, "active": company.active, "createdAt": company.createdAt}
                 res.json({success: true, statusCode: res.statusCode, message: "Saved successfully!!!", data: {company: comp}});
             }
         });
@@ -160,5 +162,17 @@ module.exports = {
             }
         });
     },
-
+    validateDomain: function (req, res, next) {
+        var domain = func.getCompanyDomain(req)
+        connMas.CompanyMaster.findOne({"emailDomain": domain}).select(['-updatedAt', '-dbHost', '-dbPort', '-dbUsername', '-dbPassword', '-createdBy', '-__v']).exec(function (err, company) {
+            if (err) {
+                next(err);
+            } else {
+                if (!company)
+                    res.json({success: true, statusCode: res.statusCode, message: "Record not found!!!", data: {valid: false, company: company}});
+                else
+                    res.json({success: true, statusCode: res.statusCode, message: "Record found!!!", data: {valid: true, company: company}});
+            }
+        });
+    }
 }

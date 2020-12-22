@@ -15,6 +15,12 @@ const CompanyMasterSchema = new Schema({
         required: true,
         default: ''
     },
+    emailDomain: {
+        type: String,
+        trim: true,
+        required: true,
+        default: ''
+    },
     logo: {
         type: String,
         trim: true,

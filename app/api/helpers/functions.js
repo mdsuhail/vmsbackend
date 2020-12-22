@@ -9,9 +9,10 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var config = require('../../../config/database');
 var jwt = require('jsonwebtoken');
+var moment = require('moment'); // require
 
 module.exports.getCurrentUser = function (headers) {
-    var currentUser = {};
+    var currentUser = null;
     if (headers && headers.authorization) {
         var authorization = headers.authorization.split(' ')[1];
         var currentUser = jwt.verify(authorization, config.secret);
@@ -33,30 +34,50 @@ module.exports.getUserQueryCondition = function (user) {
     } else if (user.role && (user.role.name === 'branchadmin' || user.role.name === 'user')) {
         query['branch'] = ObjectId(user.branch._id)
     }
-    console.log(query);
+    // console.log(query);
     return query;
 }
-module.exports.getQueryCondition = function (user, params = {}) {
+module.exports.getQueryCondition = function (user, params) {
     var query = {};
+    if (user) {
+        if (user.role.name === 'employee')
+            query['whomToMeet'] = {$eq: user._id};
+    }
     if (params) {
-        if (params.start && params.end)
-            query['createdAt'] = {$gte: new Date(params.start), $lt: new Date(params.end)};
-        else if (params.start)
-            query['createdAt'] = new Date(params.start);
-        else if (params.end)
-            query['createdAt'] = new Date(params.end);
+        if (params.start && params.end) {
+            var endDate = new Date(params.end);
+            endDate.setHours(23, 59, 59, 999);
+            query['createdAt'] = {$gte: new Date(params.start), $lt: endDate};
+        } else if (params.start)
+            query['createdAt'] = {$gte: new Date(params.start)};
+        else if (params.end) {
+            var endDate = new Date(params.end);
+            endDate.setHours(23, 59, 59, 999);
+            query['createdAt'] = {$lt: endDate};
+        }
         if (params.type == 'signin')
             query['signOut'] = '';
         if (params.type == 'signout')
             query['signOut'] = {$ne: ''};
+        if (params.employee != undefined && params.employee != '')
+            query['whomToMeet'] = {$eq: params.employee};
+        if (params.department != undefined && params.department != '')
+            query['department'] = {$eq: params.department};
+    }
+    return query;
+}
+module.exports.getVisitorTotalMonthlyQueryCondition = function (user, params = {}) {
+    var query = {};
+    if (params) {
+        query['createdAt'] = {$gte: new Date(params.start), $lt: new Date(params.end)};
     }
     return query;
 }
 module.exports.getQueryConditionWithDefault = function (user) {
     var query = {};
-//    if (user.role.name !== 'superadmin') {
-//        query = {$or: [{company: user.company._id}, {default: true}]};
-//    }
+    //    if (user.role.name !== 'superadmin') {
+    //        query = {$or: [{company: user.company._id}, {default: true}]};
+    //    }
     return query;
 }
 module.exports.getQueryConditionForRole = function (user, params) {
@@ -69,22 +90,30 @@ module.exports.getQueryConditionForRole = function (user, params) {
     } else if (user.role.name === 'companyadmin') {
         query = {"name": {$nin: ["superadmin"]}};
     } else if (user.role.name === 'branchadmin') {
-        query = {"name": {$in: ["user"]}};
+        query = {"name": {$in: ["user", "employee"]}};
     }
     return query;
 }
 module.exports.visitorsSigninQuery = function (user) {
     var query = {signOut: ''};
-//    if (user.role.name !== 'superadmin') {
-//        query = {company: user.company._id, signOut: ''}
-//    }
+    if (user) {
+        if (user.role.name === 'employee')
+            query['whomToMeet'] = {$eq: user._id};
+    }
+    //    if (user.role.name !== 'superadmin') {
+    //        query = {company: user.company._id, signOut: ''}
+    //    }
     return query;
 }
 module.exports.visitorsSignoutQuery = function (user) {
     var query = {signOut: {$ne: ''}};
-//    if (user.role.name !== 'superadmin') {
-//        query = {company: user.company._id, signOut: {$ne: ''}}
-//    }
+    if (user) {
+        if (user.role.name === 'employee')
+            query['whomToMeet'] = {$eq: user._id};
+    }
+    //    if (user.role.name !== 'superadmin') {
+    //        query = {company: user.company._id, signOut: {$ne: ''}}
+    //    }
     return query;
 }
 module.exports.getSigninMatchQueryForGroup = function (user) {
@@ -172,4 +201,55 @@ module.exports.getCollectionPrefix = function (req, res) {
     else
         return '';
 }
-
+module.exports.getCompanyDomain = function (req) {
+    if (req.body.email && req.body.email !== '') {
+        var email = req.body.email
+        var domain = email.replace(/.*@/, "");
+        return domain.toLowerCase()
+    } else
+        return ''
+}
+module.exports.getVisitorCheckinQueryCondition = function (user, params = {}) {
+    var query = {};
+    if (params) {
+        var start = new Date();
+        start.setHours(0, 0, 0, 0);
+        var end = new Date();
+        end.setHours(23, 59, 59, 999);
+        var todayDate = new Date().toISOString().split('T')[0]
+        if (params.contact) {
+            query = {
+                'contact': {$eq: params.contact},
+                'signOut': {$eq: ''},
+                $or: [{'createdAt': {$gte: start, $lte: end}}, {'preApprovedDate': {$eq: todayDate}}]
+            }
+            // query['contact'] = {$eq: params.contact};
+            // query['createdAt'] = {$gte: start, $lte: end};
+            // query['preApprovedDate'] = {$or: {$gte: start, $lte: end}};
+            // query['signOut'] = {$eq: ''};
+        }
+    }
+    return query;
+}
+module.exports.getVisitorCheckoutQueryCondition = function (user, params = {}) {
+    var query = {};
+    if (params) {
+        var start = new Date();
+        start.setHours(0, 0, 0, 0);
+        var end = new Date();
+        end.setHours(23, 59, 59, 999);
+        var todayDate = new Date().toISOString().split('T')[0]
+        if (params.contact) {
+            query = {
+                'contact': {$eq: params.contact},
+                'signOut': {$eq: ''},
+                $or: [{'createdAt': {$gte: start, $lte: end}}, {'preApprovedDate': {$eq: todayDate}}]
+            }
+            // query['contact'] = {$eq: params.contact};
+            // query['createdAt'] = {$gte: start, $lte: end};
+            // query['signOut'] = {$eq: ''};
+        }
+        ;
+    }
+    return query;
+}

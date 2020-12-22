@@ -29,6 +29,11 @@ module.exports.tenantVisitorModel = async function (prefix = '') {
     const visitorModel = mongoose.model(prefix + '_' + 'Visitor', visitorSchema.VisitorSchema)
     exports.visitorModel = visitorModel;
 }
+module.exports.tenantVisitorFaceModel = async function (prefix = '') {
+    var visitorFaceSchema = require('../app/api/models/tenant/visitorFaceSchema');
+    const visitorFaceModel = mongoose.model(prefix + '_' + 'VisitorFaces', visitorFaceSchema.VisitorFaceSchema)
+    exports.visitorFaceModel = visitorFaceModel;
+}
 module.exports.tenantVisitorCategoryModel = async function (prefix = '') {
     var visitorCategorySchema = require('../app/api/models/tenant/visitorCategorySchema');
     const visitorCategoryModel = mongoose.model(prefix + '_' + 'VisitorCategories', visitorCategorySchema.VisitorCategorySchema)

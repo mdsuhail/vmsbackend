@@ -13,6 +13,11 @@ const OtpLogsSchema = new Schema({
         trim: true,
         default: ''
     },
+    type: {
+        type: String,
+        trim: true,
+        default: 'checkin_contact_verification'
+    },
     request: {
         type: String,
         default: ''

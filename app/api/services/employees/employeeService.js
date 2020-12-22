@@ -39,6 +39,7 @@ module.exports = {
             company: (req.body.company ? req.body.company : currentUser.company._id),
             department: req.body.department ? req.body.department : objId,
             active: req.body.active,
+            isVerified: req.body.isVerified ? req.body.isVerified : false,
             createdBy: currentUser._id
         };
         connTen.employeeModel.create(data, function (err, result) {
@@ -55,13 +56,18 @@ module.exports = {
         var employees = req.body;
         employees.forEach(employee => {
             employee.company = (employee.company ? employee.company : currentUser.company._id);
-            employee.department = employee.department ? employee.department : objId;
+            employee.department = employee.department_id ? employee.department_id : objId;
         })
         connTen.employeeModel.insertMany(employees, function (err, result) {
             if (err)
                 next(err);
             else
-                res.json({success: true, statusCode: res.statusCode, message: "Uploaded successfully!!!", data: result});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Uploaded successfully!!!",
+                    data: result
+                });
         });
     },
     updateById: function (req, res, next) {
@@ -89,6 +95,7 @@ module.exports = {
             company: (req.body.company ? req.body.company : currentUser.company._id),
             department: req.body.department ? req.body.department : objId,
             active: req.body.active,
+            isVerified: req.body.isVerified ? req.body.isVerified : false,
             createdAt: req.body.createdAt ? req.body.createdAt : new Date(),
         };
         var id = req.params.employeeId;
@@ -108,7 +115,59 @@ module.exports = {
             if (err) {
                 next(err);
             } else {
-                res.json({success: true, statusCode: res.statusCode, message: "Data found!!!", data: {employee: employee}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Data found!!!",
+                    data: {employee: employee}
+                });
+            }
+        });
+    },
+    getByEmail: function (req, res, next) {
+        var prefix = func.getCollectionPrefix(req, res);
+        connTen.tenantEmployeeModel(prefix);
+        connTen.tenantDepartmentModel(prefix);
+        connTen.employeeModel.findOne({"email": req.params.employeeEmail}).populate('department', ['name', 'description', 'default', 'active'], connTen.departmentModel).exec(function (err, employee) {
+            if (err) {
+                next(err);
+            } else if (!employee) {
+                res.json({
+                    success: false,
+                    statusCode: res.statusCode,
+                    message: "Data not found!!!",
+                    data: {employee: null}
+                });
+            } else {
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Data found!!!",
+                    data: {employee: employee}
+                });
+            }
+        });
+    },
+    getByDepartmentId: function (req, res, next) {
+        var prefix = func.getCollectionPrefix(req, res);
+        connTen.tenantEmployeeModel(prefix);
+        connTen.employeeModel.find({"department": req.params.departmentId}).exec(function (err, employees) {
+            if (err) {
+                next(err);
+            } else if (!employees.length) {
+                res.json({
+                    success: false,
+                    statusCode: res.statusCode,
+                    message: "Data not found!!!",
+                    data: {employees: null}
+                });
+            } else {
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Data found!!!",
+                    data: {employees: employees}
+                });
             }
         });
     },
@@ -118,13 +177,23 @@ module.exports = {
         connTen.tenantEmployeeModel(prefix);
         connTen.tenantDepartmentModel(prefix);
         var query = func.getQueryCondition(currentUser);
-        connTen.employeeModel.find(query).populate('department', ['name', 'description', 'default', 'active'], connTen.departmentModel).sort({"_id": -1}).exec(function (err, employees) {
+        connTen.employeeModel.find(query).populate('department', ['name', 'description', 'default', 'active'], connTen.departmentModel).exec(function (err, employees) {
             if (err) {
                 next(err);
             } else if (!employees.length) {
-                res.json({success: true, statusCode: res.statusCode, message: "No record found!!!", data: {employees: []}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "No record found!!!",
+                    data: {employees: []}
+                });
             } else {
-                res.json({success: true, statusCode: res.statusCode, message: "Record found!!!", data: {employees: employees}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Record found!!!",
+                    data: {employees: employees}
+                });
             }
         });
     },
@@ -158,9 +227,9 @@ module.exports = {
             {
                 $project: {
                     name:
-                            {
-                                $concat: ["$firstname", " ", "$lastname", " - ", "$department.name"]
-                            },
+                        {
+                            $concat: ["$firstname", " ", "$lastname", " - ", "$department.name"]
+                        },
                     firstname: 1,
                     lastname: 1,
                     email: 1,
@@ -177,15 +246,70 @@ module.exports = {
             // Sort result by createdAt asc
             {
                 $sort:
-                        {"_id": 1}
+                    {"_id": 1}
             },
         ]).exec(function (err, employees) {
             if (err) {
                 next(err);
             } else {
-                res.json({success: true, statusCode: res.statusCode, message: "Data found!!!", data: {employees: employees}});
+                res.json({
+                    success: true,
+                    statusCode: res.statusCode,
+                    message: "Data found!!!",
+                    data: {employees: employees}
+                });
             }
         });
     },
-
-}
+    getBranchEmployeeValidation: function (req, res, next) {
+        var prefix = func.getCollectionPrefix(req, res);
+        var email = req.query.email
+        connTen.tenantEmployeeModel(prefix)
+        connTen.employeeModel.findOne({"email": email}).exec(function (err, employee) {
+                if (err) {
+                    next(err);
+                } else {
+                    if (!employee)
+                        res.json({
+                            success: true,
+                            statusCode: res.statusCode,
+                            message: "No record found!!!",
+                            data: {employee: employee}
+                        });
+                    else
+                        res.json({
+                            success: true,
+                            statusCode: res.statusCode,
+                            message: "Record found!!!",
+                            data: {employee: employee}
+                        });
+                }
+            }
+        );
+    },
+    updateVerificationStatus: function (req, res, next) {
+        var prefix = func.getCollectionPrefix(req, res);
+        connTen.tenantEmployeeModel(prefix);
+        if (!req.body.email || !req.body.contact) {
+            let mess = '';
+            if (!req.body.email)
+                mess = 'Email';
+            else if (!req.body.contact)
+                mess = 'Contact';
+            res.json({success: false, statusCode: res.statusCode, message: mess + " required!!!", data: {}});
+            return;
+        }
+        var data = {
+            isVerified: req.body.isVerified ? req.body.isVerified : false,
+        };
+        var email = req.body.email;
+        var contact = req.body.contact;
+        connTen.employeeModel.findOneAndUpdate({"email": email, "contact": contact}, data, function (err, employee) {
+            if (err)
+                next(err);
+            else {
+                res.json({success: true, statusCode: res.statusCode, message: "Saved successfully!!!", data: null});
+            }
+        });
+    }
+};

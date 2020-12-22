@@ -25,7 +25,7 @@ module.exports = {
             let base64String = req.body.image;
             let base64Image = base64String.split(';base64,').pop(); //image to be store
             let compName = func.getNameWithSeparator(currentUser.company.name);  // separate company folder name
-            let compFolderPath = "storage/visitorcategories/" + '/' + compName;
+            let compFolderPath = "storage/visitorcategories" + '/' + compName;
             let imageName = Math.random().toString(36).substring(2, 12);
             var imagePath = compFolderPath + '/' + imageName + ".jpeg";
             if (!fs.existsSync(compFolderPath)) {
@@ -89,7 +89,7 @@ module.exports = {
                 fs.unlinkSync(req.body.backgroundImagePath)
 
             let compName = func.getNameWithSeparator(currentUser.company.name);  // separate company folder name
-            let compFolderPath = "storage/visitorcategories/" + '/' + compName;
+            let compFolderPath = "storage/visitorcategories" + '/' + compName;
             let imageName = Math.random().toString(36).substring(2, 12);
             var imagePath = compFolderPath + '/' + imageName + ".jpeg";
             if (!fs.existsSync(compFolderPath)) {

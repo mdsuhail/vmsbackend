@@ -27,6 +27,10 @@ var UserSchema = new Schema({
         type: Boolean,
         default: true
     },
+    provider: {
+        type: String,
+        default: 'web'
+    },
     branch: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branch',

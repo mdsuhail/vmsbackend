@@ -16,5 +16,6 @@ router.get('/profile/:branchId', auth.isAuthenticated, branchService.getById);
 //router.get('/:branchId/employees', auth.isAuthenticated, branchService.getCompanyEmployeesById);
 router.put('/profile/:branchId', auth.isAuthenticated, branchService.updateById);
 router.delete('/delete/:branchId', auth.isAuthenticated, branchService.deleteById);
+router.get('/:companyId/company/employee/validation', branchService.getByCompanyIdForEmployeeValidation);
 
 module.exports = router;
